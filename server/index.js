@@ -14,7 +14,7 @@ app.use(express.static('public'))
 app.use('/auth', authRoutes)
 
 /* MONGOOSE SETUP */
-const PORT = 3000;
+const PORT = 3001;
 mongoose 
     .connect(process.env.MONGO_URL, {
         dbName: "Dream_Nest"
@@ -23,3 +23,6 @@ mongoose
         app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
     })
     .catch((err) => console.error(`❌ MongoDB Connection Error: ${err.message}`));
+
+
+    
