@@ -8,6 +8,8 @@ import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd'
 import { IoIosImages } from 'react-icons/io'
 import { useState } from 'react'
 import { BiTrash } from 'react-icons/bi'
+import { useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 
 const CreateListing = () => {
     const [category, setCategory] = useState("")
@@ -37,9 +39,9 @@ const CreateListing = () => {
     const [bathroomCount, setBathroomCount] = useState(1)
 
     /* AMENITIES */
-    const [amenities, setAmenities] = useState("")
+    const [amenities, setAmenities] = useState([])
 
-    const handleSelecAmentities = (facility) => {
+    const handleSelectAmenities = (facility) => {
         if (amenities.includes(facility)) {
             setAmenities((prevAmenities) => prevAmenities.filter((option) => option !== facility))
         } else {
@@ -58,8 +60,8 @@ const CreateListing = () => {
         if (!result.destination) return
 
         const items = Array.from(photos)
-        const [reoderedItem] = items.splice(result.source.index, 1)
-        items.splice(result.destination.index, 0, reoderedItem)
+        const [reorderedItem] = items.splice(result.source.index, 1)
+        items.splice(result.destination.index, 0, reorderedItem)
 
         setPhotos(items)
     }
@@ -75,7 +77,7 @@ const CreateListing = () => {
         title: "",
         description: "",
         highlight: "",
-        highlightDes: "",
+        highlightDesc: "",
         price: 0
     })
 
@@ -87,13 +89,59 @@ const CreateListing = () => {
         })
     }
 
+    const creatorId = useSelector((state) => state.user._id)
+
+    const navigate = useNavigate()
+
+    const handlePost = async (e) => {
+        e.preventDefault();
+
+        try {
+            const listingForm = new FormData();
+            listingForm.append("creator", creatorId);
+            listingForm.append("category", category);
+            listingForm.append("type", type);
+            listingForm.append("streetAddress", formLocation.streetAddress);
+            listingForm.append("aptSuite", formLocation.aptSuite);
+            listingForm.append("city", formLocation.city);
+            listingForm.append("province", formLocation.province);
+            listingForm.append("country", formLocation.country);
+            listingForm.append("guestCount", guestCount);
+            listingForm.append("bedroomCount", bedroomCount);
+            listingForm.append("bedCount", bedCount);
+            listingForm.append("bathroomCount", bathroomCount);
+            listingForm.append("amenities", amenities);
+            listingForm.append("title", formDescription.title);
+            listingForm.append("description", formDescription.description);
+            listingForm.append("highlight", formDescription.highlight);
+            listingForm.append("highlightDesc", formDescription.highlightDesc);
+            listingForm.append("price", formDescription.price);
+
+            /* Append each selected photos to the FormData object */
+            photos.forEach((photo) => {
+                listingForm.append("listingPhotos", photo);
+            });
+
+            /* Send a POST request to server */
+            const response = await fetch("http://localhost:3001/properties/create", {
+                method: 'POST',
+                body: listingForm
+            });
+
+            if (response.ok) {
+                navigate("/");
+            }
+        } catch (err) {
+            console.log("Publish Listing failed", err.message);
+        }
+    };
     return (
         <>
             <Navbar />
 
             <div className='create-listing'>
                 <h1>Public Your Place</h1>
-                <form>
+                <form onSubmit={handlePost}>
                     <div className='create-listing_step1'>
                         <h2>Step 1: Tell us about your place</h2>
                         <hr />
@@ -145,11 +193,11 @@ const CreateListing = () => {
 
                         <div className='half'>
                             <div className='location'>
-                                <p>Apartement, Suite, etc. (if applocable)</p>
+                                <p>Apartement, Suite, etc. (if applicable)</p>
                                 <input
                                     type="text"
-                                    placeholder='Apt, Suite, etc. (if applocable)'
-                                    name='appSuite'
+                                    placeholder='Apt, Suite, etc. (if applicable)'
+                                    name='aptSuite'
                                     value={formLocation.aptSuite}
                                     onChange={handleChangeLocation}
                                     required
@@ -187,6 +235,7 @@ const CreateListing = () => {
                                     placeholder='Country'
                                     name='country'
                                     value={formLocation.country}
+                                    onChange={handleChangeLocation}
                                     required
                                 />
                             </div>
@@ -264,7 +313,7 @@ const CreateListing = () => {
                                 <p>Bathrooms</p>
                                 <div className='basic_count'>
                                     <RemoveCircleOutline
-                                        onClick={() => { bathroomCount > 1 && setBathroomCount(- 1) }}
+                                        onClick={() => { bathroomCount > 1 && setBathroomCount(bathroomCount - 1) }}
                                         sx={{
                                             fontSize: "25px",
                                             cursor: "pointer",
@@ -293,9 +342,9 @@ const CreateListing = () => {
                         <div className='amenities'>
                             {facilities?.map((item, index) => (
                                 <div
-                                    className={`facility ${amenities.includes(item) ? "selected" : ""}`}
+                                    className={`facility ${amenities.includes(item.name) ? "selected" : ""}`}
                                     key={index}
-                                    onClick={() => handleSelecAmentities(item)}
+                                    onClick={() => handleSelectAmenities(item.name)}
                                 >
                                     <div className='facility_icon'>{item.icon}</div>
                                     <p>{item.name}</p>
@@ -304,8 +353,8 @@ const CreateListing = () => {
                         </div>
 
                         <h3>Add some photos of your place</h3>
-                        <DragDropContext onDragEnd={handleDragPhoto}>
-                            <Droppable droppableId='photos' direction='horizontal'>
+                        <DragDropContext onDragEnd={handleDragPhoto} isCombineEnabled={false}>
+                            <Droppable droppableId='photos' direction='horizontal' isDropDisabled={false}>
                                 {(provided) => (
                                     <div
                                         className='photos' {...provided.droppableProps}
@@ -335,7 +384,7 @@ const CreateListing = () => {
                                                             {(provided) => (
                                                                 <div className='photo' ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
                                                                     <img src={URL.createObjectURL(photo)} alt="place" />
-                                                                    <button type='button' onChange={() => handleRemovePhoto(index)}>
+                                                                    <button type='button' onClick={() => handleRemovePhoto(index)}>
                                                                         <BiTrash />
                                                                     </button>
                                                                 </div>
@@ -396,7 +445,7 @@ const CreateListing = () => {
                                 type="text"
                                 placeholder='Highlight details'
                                 name='highlightDesc'
-                                value={formDescription.highlightDes}
+                                value={formDescription.highlightDesc}
                                 onChange={handleChangeDescription}
                                 required
                             />
@@ -406,11 +455,17 @@ const CreateListing = () => {
                                 type="number"
                                 placeholder='100'
                                 name='price'
+                                value={formDescription.price}
+                                onChange={handleChangeDescription}
                                 className='price'
                                 required
                             />
                         </div>
                     </div>
+
+                    <button className="submit_btn" type="submit">
+                        CREATE YOUR LISTING
+                    </button>
                 </form>
             </div>
         </>
