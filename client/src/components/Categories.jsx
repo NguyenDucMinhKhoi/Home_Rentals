@@ -13,14 +13,14 @@ const Categories = () => {
       </p>
 
       <div className='categories_list'>
-        {categories?.slice(1, 7).map((category, index) => (
-          <Link to=''>
-            <div className='category' key={index}>
+        {categories?.slice(1, 7).map((category) => (
+          <Link to={`/properties/category/${category.label}`} key={category.id || category.label}>
+            <div className='category'>
               <img src={category.img} alt={category.label} />
               <div className='overlay'></div>
               <div className='category_text'>
                 <div className='category_text_icon'>{category.icon}</div>
-                <p>{category.labal}</p>
+                <p>{category.label}</p>
               </div>
             </div>
           </Link>

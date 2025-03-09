@@ -40,13 +40,13 @@ const Listings = () => {
   return (
     <>
       <div className="category-list">
-        {categories?.map((category, index) => (
+        {categories?.map((category) => (
           <div
-            className={`category`}
-            key={index}
+            className={`category ${category.label === selectedCategory ? "selected" : ""}`}
+            key={category.id}
             onClick={() => setSelectedCategory(category.label)}
           >
-            <div className="category_icon">{category.icon} </div>
+            <div className="category_icon">{category.icon}</div>
             <p>{category.label}</p>
           </div>
         ))}
@@ -67,8 +67,10 @@ const Listings = () => {
               category,
               type,
               price,
+              booking = false,
             }) => (
               <ListingCard
+                key={_id}
                 listingId={_id}
                 creator={creator}
                 listingPhotoPaths={listingPhotoPaths}
@@ -78,6 +80,7 @@ const Listings = () => {
                 category={category}
                 type={type}
                 price={price}
+                booking={booking}
               />
             )
           )}

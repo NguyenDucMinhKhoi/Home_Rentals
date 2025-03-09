@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "../styles/ListingCard.scss";
 import { ArrowForwardIos, ArrowBackIosNew } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 const ListingCard = ({
   listingId,
   creator,
@@ -26,37 +27,45 @@ const ListingCard = ({
     setCurrentIndex((prevIndex) => (prevIndex + 1) % listingPhotoPaths.length);
   };
 
+  const navigate = useNavigate();
+
   return (
-    <div className="listing-card">
+    <div
+      className="listing-card"
+      onClick={() => {
+        navigate(`/properties/${listingId}`);
+      }}
+    >
       <div className="slider-container">
         <div
           className="slider"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
-          {listingPhotoPaths?.map((photo, index) => (
-            <div key={index} className="slide">
-              <img
-                src={`http://localhost:3001/${photo.replace("public", "")}`}
-                alt={`photo ${index + 1}`}
-              />
-              <div
-                className="prev-button"
-                onClick={(e) => {
-                  goToPrevSlide(e);
-                }}
-              >
-                <ArrowBackIosNew sx={{ fontSize: "15px" }} />
+          {listingPhotoPaths?.length > 0 &&
+            listingPhotoPaths.map((photo, index) => (
+              <div key={index} className="slide">
+                <img
+                  src={`http://localhost:3001/${photo?.replace("public", "")}`}
+                  alt={`photo ${index + 1}`}
+                />
+                <div
+                  className="prev-button"
+                  onClick={(e) => {
+                    goToPrevSlide(e);
+                  }}
+                >
+                  <ArrowBackIosNew sx={{ fontSize: "15px" }} />
+                </div>
+                <div
+                  className="next-button"
+                  onClick={(e) => {
+                    goTONextSlide(e);
+                  }}
+                >
+                  <ArrowForwardIos sx={{ fontSize: "15px" }} />
+                </div>
               </div>
-              <div
-                className="next-button"
-                onClick={(e) => {
-                  goTONextSlide(e);
-                }}
-              >
-                <ArrowForwardIos sx={{ fontSize: "15px" }} />
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
 
