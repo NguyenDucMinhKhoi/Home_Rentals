@@ -1,30 +1,22 @@
 import { useEffect, useState } from "react";
 import "../styles/ListingDetails.scss";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { facilities } from "../data";
-import "react-date-range/dist/styles.css";
-import "react-date-range/dist/theme/default.css";
-import { DateRange } from "react-date-range";
+
 import Loader from "../components/Loader";
 import Navbar from "../components/Navbar";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import Footer from "../components/Footer";
+import Footer from "../components/Footer"
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const ListingDetails = () => {
   const [loading, setLoading] = useState(true);
+
   const { listingId } = useParams();
   const [listing, setListing] = useState(null);
-  const [range, setRange] = useState([
-    {
-      startDate: null,
-      endDate: null,
-      key: 'selection'
-    }
-  ]);
 
   const getListingDetails = async () => {
-    console.log("Fetching listing details for ID:", listingId);
     try {
       const response = await fetch(
         `http://localhost:3001/properties/${listingId}`,
@@ -33,17 +25,12 @@ const ListingDetails = () => {
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-
       const data = await response.json();
-      console.log("Fetched data:", data);
+      console.log(data);
       setListing(data);
       setLoading(false);
     } catch (err) {
       console.log("Fetch Listing Details Failed", err.message);
-      setLoading(false);
     }
   };
 
@@ -51,46 +38,67 @@ const ListingDetails = () => {
     getListingDetails();
   }, []);
 
+  console.log(listing)
+
+  /* BOOKING CALENDAR */
+  const [dateRange, setDateRange] = useState([
+    {
+      startDate: new Date(),
+      endDate: new Date(),
+      key: "selection",
+    },
+  ]);
+
+  const handleSelect = (ranges) => {
+    // Update the selected date range when user makes a selection
+    setDateRange([ranges.selection]);
+  };
+
+  // Calculate start and end dates
+  const start = new Date(dateRange[0].startDate);
+  const end = new Date(dateRange[0].endDate);
+
+  // Calculate the difference in days
+  const dayCount = Math.round((end - start) / (1000 * 60 * 60 * 24)); // Ensure this is a positive number
+
   /* SUBMIT BOOKING */
-  const customerId = useSelector((state) => state?.user?._id);
-  const navigate = useNavigate();
+  const customerId = useSelector((state) => state?.user?._id)
+
+  const navigate = useNavigate()
 
   const handleSubmit = async () => {
-    const { startDate, endDate } = range[0];
-    if (!startDate || !endDate) return;
-
-    const dayCount = (endDate - startDate) / (1000 * 60 * 60 * 24) + 1; // Calculate the number of days
     try {
       const bookingForm = {
         customerId,
         listingId,
         hostId: listing.creator._id,
-        startDate: startDate.toISOString().split('T')[0],
-        endDate: endDate.toISOString().split('T')[0],
+        startDate: dateRange[0].startDate.toDateString(),
+        endDate: dateRange[0].endDate.toDateString(),
         totalPrice: listing.price * dayCount,
-      };
+      }
 
       const response = await fetch("http://localhost:3001/bookings/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(bookingForm),
-      });
+        body: JSON.stringify(bookingForm)
+      })
 
       if (response.ok) {
-        navigate(`/${customerId}/trips`);
+        navigate(`/${customerId}/trips`)
       }
     } catch (err) {
-      console.log("Submit Booking Failed.", err.message);
+      console.log("Submit Booking Failed.", err.message)
     }
-  };
+  }
 
   return loading ? (
     <Loader />
   ) : (
     <>
       <Navbar />
+      
       <div className="listing-details">
         <div className="title">
           <h1>{listing.title}</h1>
@@ -98,7 +106,7 @@ const ListingDetails = () => {
         </div>
 
         <div className="photos">
-          {listing.listingPhotoPaths?.map((item) => (
+          {listing?.listingPhotoPaths?.map((item) => (
             <img
               key={item}
               src={`http://localhost:3001/${item.replace("public", "")}`}
@@ -119,14 +127,11 @@ const ListingDetails = () => {
 
         <div className="profile">
           <img
-            src={`http://localhost:3001/${listing.creator?.profileImagePaths?.replace(
-              "public",
-              ""
-            )}`}
-            alt="Profile"
+            src={listing?.creator?.profileImagePath ? `http://localhost:3001/${listing.creator.profileImagePath.replace("public", "")}` : "http://localhost:3001/uploads/zai.png"}
+            alt="profile"
           />
           <h3>
-            Hosted by {listing.creator?.firstName} {listing.creator?.lastName}
+            Hosted by {listing?.creator?.firstName} {listing?.creator?.lastName}
           </h3>
         </div>
         <hr />
@@ -160,14 +165,30 @@ const ListingDetails = () => {
           <div>
             <h2>How long do you want to stay?</h2>
             <div className="date-range-calendar">
-              <DateRange
-                editableDateInputs={true}
-                onChange={item => setRange([item.selection])}
-                moveRangeOnFirstSelection={false}
-                ranges={range}
+              <DatePicker
+                selected={dateRange[0].startDate}
+                onChange={(date) => handleSelect({ selection: { startDate: date[0], endDate: date[1] } })}
+                startDate={dateRange[0].startDate}
+                endDate={dateRange[0].endDate}
+                selectsRange
+                inline
               />
-              <h2>Total price: ${listing.price * ((range[0].endDate - range[0].startDate) / (1000 * 60 * 60 * 24) + 1)}</h2>
-
+              <div className="price-info">
+                {dayCount > 1 ? (
+                  <h2>
+                    ${listing.price} x {dayCount} nights
+                  </h2>
+                ) : (
+                  <h2>
+                    ${listing.price} x {dayCount} night
+                  </h2>
+                )}
+                <h2>Total price: ${listing.price * dayCount}</h2>
+              </div>
+              <div className="date-info">
+                <p>Start Date: {dateRange[0].startDate ? dateRange[0].startDate.toDateString() : "Not selected"}</p>
+                <p>End Date: {dateRange[0].endDate ? dateRange[0].endDate.toDateString() : "Not selected"}</p>
+              </div>
               <button className="button" type="submit" onClick={handleSubmit}>
                 BOOKING
               </button>
@@ -175,6 +196,7 @@ const ListingDetails = () => {
           </div>
         </div>
       </div>
+
       <Footer />
     </>
   );

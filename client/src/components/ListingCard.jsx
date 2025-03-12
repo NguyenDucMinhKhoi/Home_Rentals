@@ -12,6 +12,10 @@ const ListingCard = ({
   category,
   type,
   price,
+  startDate,
+  endDate,
+  totalPrice,
+  booking,
 }) => {
   /* SLIDER FOR IMAGES */
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -51,6 +55,7 @@ const ListingCard = ({
                 <div
                   className="prev-button"
                   onClick={(e) => {
+                    e.stopPropagation()
                     goToPrevSlide(e);
                   }}
                 >
@@ -59,6 +64,7 @@ const ListingCard = ({
                 <div
                   className="next-button"
                   onClick={(e) => {
+                    e.stopPropagation()
                     goTONextSlide(e);
                   }}
                 >
@@ -73,10 +79,24 @@ const ListingCard = ({
         {city}, {province}, {country}
       </h3>
       <p>{category}</p>
-      <p>{type}</p>
-      <p>
-        <span>${price}</span> per night
-      </p>
+
+      {!booking ? (
+        <>
+          <p>{type}</p>
+          <p>
+            <span>${price}</span> per night
+          </p>
+        </>
+      ) : (
+        <>
+          <p>
+            {startDate} - {endDate}
+          </p>
+          <p>
+            <span>${totalPrice}</span> total
+          </p>
+        </>
+      )}
     </div>
   );
 };
