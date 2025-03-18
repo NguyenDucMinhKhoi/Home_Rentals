@@ -53,7 +53,7 @@ const ListingCard = ({
         `http://localhost:3001/users/${user?._id}/${listingId}`,
         {
           method: "PATCH",
-          headers: {
+          header: {
             "Content-Type": "application/json",
           },
         }
