@@ -41,9 +41,8 @@ router.post("/create", upload.array("listingPhotos"), async (req, res) => {
       price,
     } = req.body;
 
-    const user = await User.findById(creator);
-
     const listingPhotos = req.files;
+
     if (!listingPhotos) {
       return res.status(400).send("No file uploaded.");
     }
@@ -52,7 +51,6 @@ router.post("/create", upload.array("listingPhotos"), async (req, res) => {
 
     const newListing = new Listing({
       creator,
-      firstName: user.firstName,
       category,
       type,
       streetAddress,
@@ -80,10 +78,11 @@ router.post("/create", upload.array("listingPhotos"), async (req, res) => {
     res
       .status(409)
       .json({ message: "Fail to create Listing", error: err.message });
+      console.log(err)
   }
 });
 
-/* GET LISTING */
+/* GET LISTING BY CATEGORY */
 router.get("/", async (req, res) => {
   const qCategory = req.query.category;
 
@@ -110,7 +109,7 @@ router.get("/", async (req, res) => {
 router.get("/:listingId", async (req, res) => {
   try {
     const { listingId } = req.params;
-    const listing = await Listing.findById(listingId);
+    const listing = await Listing.findById(listingId).populate("creator");
     res.status(202).json(listing);
   } catch (err) {
     res
