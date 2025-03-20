@@ -1,48 +1,56 @@
 import { useParams } from "react-router-dom";
-import Navbar from "../components/Navbar";
 import "../styles/List.scss";
 import { useSelector, useDispatch } from "react-redux";
 import { setListings } from "../redux/state";
-import Loader from "../components/Loader";
 import { useEffect, useState } from "react";
+import Loader from "../components/Loader";
+import Navbar from "../components/Navbar";
 import ListingCard from "../components/ListingCard";
 import Footer from "../components/Footer";
 
-const CategoryPage = () => {
+const SearchPage = () => {
   const [loading, setLoading] = useState(true);
-  const { category } = useParams();
+  const { search } = useParams();
+  const listings = useSelector((state) => state.listings);
 
   const dispatch = useDispatch();
 
-  const listings = useSelector((state) => state.listings);
-
-  const getFeedListings = async () => {
+  const getSearchListings = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3001/properties?category=${category}`,
+        `http://localhost:3001/properties/${search}`,
         {
           method: "GET",
         }
       );
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
-      dispatch(setListings({ listings: data }));
+      if (data.length > 0) {
+        dispatch(setListings({ listings: data }));
+      } else {
+        console.log("No listings found for this search.");
+      }
       setLoading(false);
     } catch (err) {
-      console.log("Fetch Listings Failed", err.message);
+      console.log("Fetch Search List failed", err.message);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    getFeedListings();
-  }, [category]);
+    getSearchListings()
+  }, [search])
 
   return loading ? (
     <Loader />
   ) : (
     <>
       <Navbar />
-      <h1 className="title-list">{category} listings</h1>
+      <h1 className="title-list">{search}</h1>
       <div className="list">
         {listings?.map(
           ({
@@ -78,4 +86,4 @@ const CategoryPage = () => {
   );
 };
 
-export default CategoryPage;
+export default SearchPage;
