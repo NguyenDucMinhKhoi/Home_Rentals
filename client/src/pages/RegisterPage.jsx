@@ -45,8 +45,13 @@ const RegisterPage = () => {
                 body: register_form
             })
 
-            if (response.ok) {
+            if (response.status === 409) {
+                const data = await response.json()
+                alert(data.message)
+            } else if (response.ok) {
                 navigate("/login")
+            } else {
+                console.log("Registration failed")
             }
         } catch (err) {
             console.log("Registration failed", err.message)
