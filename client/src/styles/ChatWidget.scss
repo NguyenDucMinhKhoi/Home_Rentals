@@ -1,0 +1,143 @@
+.chat-widget {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  width: 350px;
+  height: 450px;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+  font-family: 'Nunito', sans-serif;
+
+  &.closed {
+    display: none; // Ẩn khi đóng
+  }
+
+  .chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #FF385C;
+    color: white;
+    padding: 15px;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    font-weight: 600;
+
+    button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 20px;
+      padding: 5px;
+      transition: transform 0.2s ease;
+
+      &:hover {
+        transform: scale(1.1);
+      }
+    }
+  }
+
+  .chat-body {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background-color: #f8f9fa;
+
+    .message {
+      padding: 12px 15px;
+      border-radius: 12px;
+      max-width: 75%;
+      font-size: 14px;
+      line-height: 1.4;
+      
+      &.user {
+        background-color: #FF385C;
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 4px;
+      }
+      
+      &.bot {
+        background-color: #ffffff;
+        color: #333;
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+    }
+  }
+
+  .chat-input {
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    padding: 15px;
+    background-color: #ffffff;
+
+    input {
+      flex-grow: 1;
+      border: 1px solid #e0e0e0;
+      border-radius: 25px;
+      padding: 10px 15px;
+      margin-right: 10px;
+      font-size: 14px;
+      transition: border-color 0.2s ease;
+
+      &:focus {
+        outline: none;
+        border-color: #FF385C;
+      }
+
+      &::placeholder {
+        color: #999;
+      }
+    }
+
+    button {
+      background-color: #FF385C;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: #E31C5F;
+      }
+    }
+  }
+
+  .typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 4px 8px;
+    
+    span {
+      width: 8px;
+      height: 8px;
+      background: #FF385C;
+      border-radius: 50%;
+      animation: typing 1s infinite ease-in-out;
+
+      &:nth-child(1) { animation-delay: 0.2s; }
+      &:nth-child(2) { animation-delay: 0.4s; }
+      &:nth-child(3) { animation-delay: 0.6s; }
+    }
+  }
+}
+
+@keyframes typing {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0); }
+}
