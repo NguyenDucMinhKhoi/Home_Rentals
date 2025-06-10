@@ -10,15 +10,13 @@ const RegisterPage = () => {
         email: "",
         password: "",
         confirmPassword: "",
-        profileImage: null,
     })
 
     const handleChange = (e) => {
-        const { name, value, files } = e.target
+        const { name, value } = e.target
         setFormData({
             ...formData,
             [name]: value,
-            [name]: name === 'profileImage' ? files[0] : value,
         })
     }
 
@@ -34,15 +32,12 @@ const RegisterPage = () => {
         e.preventDefault()
 
         try {
-            const register_form = new FormData()
-
-            for (var key in formData) {
-                register_form.append(key, formData[key])
-            }
-
             const response = await fetch("http://localhost:3001/auth/register", {
                 method: "POST",
-                body: register_form
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
             })
 
             if (response.status === 409) {
@@ -105,27 +100,6 @@ const RegisterPage = () => {
                         <p style={{ color: "red" }}>Passwords are not matched!</p>
                     )}
 
-                    <input
-                        id='image'
-                        type='file'
-                        name='profileImage'
-                        accept='image/*'
-                        style={{ display: 'none' }}
-                        onChange={handleChange}
-                        required
-                    />
-                    <label htmlFor='image'>
-                        <img src='/assets/addImage.png' alt='add profile photo' />
-                        <p>Upload Your Photo</p>
-                    </label>
-
-                    {formData.profileImage && (
-                        <img
-                            src={URL.createObjectURL(formData.profileImage)}
-                            alt='profile photo'
-                            style={{ maxWidth: '80px' }}
-                        />
-                    )}
                     <button type='submit' disabled={!passwordMatch}>REGISTER</button>
                 </form>
                 <a href='/login'>Already have an account? Log In Here</a>

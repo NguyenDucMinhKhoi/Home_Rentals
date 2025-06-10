@@ -1,7 +1,7 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { register, login } = require('../controllers/authController');
-const { auth, adminAuth } = require('../middleware/authMiddleware');
+const { register, login } = require("../controllers/authController");
+const { auth, adminAuth } = require("../middleware/authMiddleware");
 
 // Public routes
 router.post("/register", register);
@@ -17,4 +17,4 @@ router.get("/admin", auth, adminAuth, (req, res) => {
     res.json({ message: "Welcome to admin dashboard" });
 });
 
-module.exports = router;
+module.exports = router; 

@@ -9,11 +9,12 @@ const listingRoutes = require("./routes/listing.js");
 const bookingRoutes = require("./routes/booking.js");
 const userRoutes = require("./routes/user.js");
 const chatRoutes = require('./routes/chatRoutes');
+const adminRoutes = require('./routes/admin');
 
 // CORS configuration
 app.use(cors({
   origin: ['http://localhost:3000', 'http://localhost:3001'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true
 }));
@@ -27,6 +28,7 @@ app.use("/properties", listingRoutes);
 app.use("/bookings", bookingRoutes);
 app.use("/users", userRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/admin', adminRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

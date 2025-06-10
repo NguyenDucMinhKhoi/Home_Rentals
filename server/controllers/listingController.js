@@ -4,7 +4,6 @@ const Listing = require("../models/Listing");
 const createListing = async (req, res) => {
     try {
         const {
-            creator,
             category,
             type,
             streetAddress,
@@ -26,14 +25,14 @@ const createListing = async (req, res) => {
 
         const listingPhotos = req.files;
 
-        if (!listingPhotos) {
-            return res.status(400).send("No file uploaded.");
+        if (!listingPhotos || listingPhotos.length === 0) {
+            return res.status(400).send("No listing photos uploaded.");
         }
 
         const listingPhotoPaths = listingPhotos.map((file) => file.path);
 
         const newListing = new Listing({
-            creator,
+            creator: req.user.id,
             category,
             type,
             streetAddress,
@@ -118,4 +117,56 @@ const getListingDetails = async (req, res) => {
     }
 };
 
-module.exports = { createListing, getListingsByCategory, searchListings, getListingDetails };
+// Hàm cập nhật listing
+const updateListing = async (req, res) => {
+    try {
+        const { listingId } = req.params;
+        const updatedData = req.body;
+        const listingPhotos = req.files;
+
+        if (listingPhotos && listingPhotos.length > 0) {
+            updatedData.listingPhotoPaths = listingPhotos.map((file) => file.path);
+        }
+
+        const updatedListing = await Listing.findByIdAndUpdate(
+            listingId,
+            { $set: updatedData },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedListing) {
+            return res.status(404).json({ message: "Listing not found" });
+        }
+
+        res.status(200).json(updatedListing);
+    } catch (err) {
+        res.status(500).json({ message: "Fail to update listing", error: err.message });
+        console.log(err);
+    }
+};
+
+// Hàm xóa listing
+const deleteListing = async (req, res) => {
+    try {
+        const { listingId } = req.params;
+        const deletedListing = await Listing.findByIdAndDelete(listingId);
+
+        if (!deletedListing) {
+            return res.status(404).json({ message: "Listing not found" });
+        }
+
+        res.status(200).json({ message: "Listing deleted successfully" });
+    } catch (err) {
+        res.status(500).json({ message: "Fail to delete listing", error: err.message });
+        console.log(err);
+    }
+};
+
+module.exports = {
+    createListing,
+    getListingsByCategory,
+    searchListings,
+    getListingDetails,
+    updateListing,
+    deleteListing
+};

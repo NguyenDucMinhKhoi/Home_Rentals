@@ -52,14 +52,7 @@ const Navbar = () => {
           {!user ? (
             <Person sx={{ color: variables.darkgray }} />
           ) : (
-            <img
-              src={`http://localhost:3001/${user.profileImagePath.replace(
-                "public",
-                ""
-              )}`}
-              alt="profile photo"
-              style={{ objectFit: "cover", borderRadius: "50%" }}
-            />
+            <Person sx={{ color: variables.darkgray }} />
           )}
         </button>
 
@@ -72,6 +65,9 @@ const Navbar = () => {
 
         {dropdownMenu && user && (
           <div className="navbar_right_accountmenu">
+            {user.role === "admin" && (
+              <Link to="/admin">Admin Dashboard</Link>
+            )}
             <Link to={`/${user._id}/trips`}>Trip List</Link>
             <Link to={`/${user._id}/wishList`}>Wish List</Link>
             <Link to={`/${user._id}/properties`}>Property List</Link>

@@ -13,7 +13,9 @@ import PropertyList from "./pages/PropertyList";
 import ReservationList from "./pages/ReservationList";
 import CategoryPage from "./pages/CategoryPage";
 import SearchPage from "./pages/SearchPage";
-import ChatWidget from "./components/ChatWidget"; 
+import ChatWidget from "./components/ChatWidget";
+import AdminDashboard from "./pages/AdminDashboard";
+import EditListing from "./pages/EditListing";
 
 function App() {
   return (
@@ -30,6 +32,8 @@ function App() {
         <Route path="/:userId/wishList" element={<WishList />} />
         <Route path="/:userId/properties" element={<PropertyList />} />
         <Route path="/:userId/reservations" element={<ReservationList />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/properties/edit/:listingId" element={<EditListing />} />
       </Routes>
 
       {/* ← widget chat sẽ hiện trên mọi trang */}
