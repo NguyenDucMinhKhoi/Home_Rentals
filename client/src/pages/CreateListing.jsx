@@ -6,17 +6,17 @@ import { RemoveCircleOutline, AddCircleOutline } from "@mui/icons-material";
 import variables from "../styles/variables.scss";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import { IoIosImages } from "react-icons/io";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BiTrash } from "react-icons/bi";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 
 const CreateListing = () => {
+  const navigate = useNavigate();
+  const { user, token } = useSelector((state) => state);
   const [category, setCategory] = useState("");
   const [type, setType] = useState("");
-
-  /* LOCATION */
   const [formLocation, setFormLocation] = useState({
     streetAddress: "",
     aptSuite: "",
@@ -24,6 +24,29 @@ const CreateListing = () => {
     province: "",
     country: "",
   });
+  const [guestCount, setGuestCount] = useState(1);
+  const [bedroomCount, setBedroomCount] = useState(1);
+  const [bedCount, setBedCount] = useState(1);
+  const [bathroomCount, setBathroomCount] = useState(1);
+  const [amenities, setAmenities] = useState([]);
+  const [photos, setPhotos] = useState([]);
+  const [formDescription, setFormDescription] = useState({
+    title: "",
+    description: "",
+    highlight: "",
+    highlightDesc: "",
+    price: 0,
+  });
+
+  useEffect(() => {
+    if (!user || !token) {
+      navigate('/login');
+    }
+  }, [user, token, navigate]);
+
+  if (!user || !token) {
+    return null;
+  }
 
   const handleChangeLocation = (e) => {
     const { name, value } = e.target;
@@ -32,15 +55,6 @@ const CreateListing = () => {
       [name]: value,
     });
   };
-
-  /* BASIC COUNTS */
-  const [guestCount, setGuestCount] = useState(1);
-  const [bedroomCount, setBedroomCount] = useState(1);
-  const [bedCount, setBedCount] = useState(1);
-  const [bathroomCount, setBathroomCount] = useState(1);
-
-  /* AMENITIES */
-  const [amenities, setAmenities] = useState([]);
 
   const handleSelectAmenities = (facility) => {
     if (amenities.includes(facility)) {
@@ -51,8 +65,6 @@ const CreateListing = () => {
       setAmenities((prev) => [...prev, facility]);
     }
   };
-  /* UPLOAD, DRAG & DROP, REMOVE PHOTOS */
-  const [photos, setPhotos] = useState([]);
 
   const handleUploadPhotos = (e) => {
     const newPhotos = e.target.files;
@@ -75,15 +87,6 @@ const CreateListing = () => {
     );
   };
 
-  /* DESCRIPTION */
-  const [formDescription, setFormDescription] = useState({
-    title: "",
-    description: "",
-    highlight: "",
-    highlightDesc: "",
-    price: 0,
-  });
-
   const handleChangeDescription = (e) => {
     const { name, value } = e.target;
     setFormDescription({
@@ -92,16 +95,12 @@ const CreateListing = () => {
     });
   };
 
-  const creatorId = useSelector((state) => state.user._id);
-
-  const navigate = useNavigate();
-
   const handlePost = async (e) => {
     e.preventDefault();
 
     try {
       const listingForm = new FormData();
-      listingForm.append("creator", creatorId);
+      listingForm.append("creator", user._id);
       listingForm.append("category", category);
       listingForm.append("type", type);
       listingForm.append("streetAddress", formLocation.streetAddress);
@@ -128,11 +127,17 @@ const CreateListing = () => {
       /* Send a POST request to server */
       const response = await fetch("http://localhost:3001/properties/create", {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: listingForm,
       });
 
       if (response.ok) {
         navigate("/");
+      } else {
+        const error = await response.json();
+        console.error("Failed to create listing:", error);
       }
     } catch (err) {
       console.log("Publish Listing failed", err.message);

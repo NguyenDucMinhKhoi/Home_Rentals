@@ -11,12 +11,13 @@ import { BiTrash } from "react-icons/bi";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import Footer from "../components/Footer";
+import "../styles/EditListing.scss";
 
 const EditListing = () => {
   const { listingId } = useParams();
   const [loading, setLoading] = useState(true);
   const [listing, setListing] = useState(null);
-
+  
   const [category, setCategory] = useState("");
   const [type, setType] = useState("");
 
@@ -55,6 +56,7 @@ const EditListing = () => {
       setAmenities((prev) => [...prev, facility]);
     }
   };
+
   /* UPLOAD, DRAG & DROP, REMOVE PHOTOS */
   const [photos, setPhotos] = useState([]);
   const [existingPhotos, setExistingPhotos] = useState([]);
@@ -103,19 +105,24 @@ const EditListing = () => {
     });
   };
 
-  const user = useSelector((state) => state.user);
+  const { user, token } = useSelector((state) => state);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user || !token) {
+      navigate('/login');
+    }
+  }, [user, token, navigate]);
 
   useEffect(() => {
     const getListingDetails = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:3001/properties/${listingId}`,
-          {
-            method: "GET",
-          }
-        );
-
+        const response = await fetch(`http://localhost:3001/properties/${listingId}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         const data = await response.json();
         setListing(data);
         setCategory(data.category);
@@ -147,14 +154,14 @@ const EditListing = () => {
       }
     };
     getListingDetails();
-  }, [listingId]);
+  }, [listingId, token]);
 
   const handleUpdate = async (e) => {
     e.preventDefault();
 
     try {
       const listingForm = new FormData();
-      listingForm.append("creator", user._id); // creatorId is now from logged in user
+      listingForm.append("creator", user._id);
       listingForm.append("category", category);
       listingForm.append("type", type);
       listingForm.append("streetAddress", formLocation.streetAddress);
@@ -172,7 +179,7 @@ const EditListing = () => {
       listingForm.append("highlight", formDescription.highlight);
       listingForm.append("highlightDesc", formDescription.highlightDesc);
       listingForm.append("price", formDescription.price);
-      listingForm.append("existingPhotos", JSON.stringify(existingPhotos)); // Send existing photos array
+      listingForm.append("existingPhotos", JSON.stringify(existingPhotos));
 
       /* Append new photos to the FormData object */
       photos.forEach((photo) => {
@@ -180,21 +187,19 @@ const EditListing = () => {
       });
 
       /* Send a PATCH request to server */
-      const response = await fetch(
-        `http://localhost:3001/properties/${listingId}`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${user.token}`, // Include token for authentication
-          },
-          body: listingForm,
-        }
-      );
+      const response = await fetch(`http://localhost:3001/properties/${listingId}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: listingForm,
+      });
 
       if (response.ok) {
         navigate(`/properties/${listingId}`);
       } else {
-        console.log("Update Listing failed");
+        const error = await response.json();
+        console.error("Failed to update listing:", error);
       }
     } catch (err) {
       console.log("Update Listing failed", err.message);
@@ -202,7 +207,11 @@ const EditListing = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>; // Or a proper Loader component
+    return <div>Loading...</div>;
+  }
+
+  if (!user || !token) {
+    return null;
   }
 
   return (
@@ -453,22 +462,22 @@ const EditListing = () => {
             <div className="photos">
               {existingPhotos.map((photo, index) => (
                 <div key={index} className="photo">
-                  <img src={`http://localhost:3001/${photo.replace("public", "")}`} alt="existing place" />
-                  <button
-                    type="button"
-                    onClick={() => handleRemovePhoto(index, true)}
-                  >
+                  <img 
+                    src={`http://localhost:3001/${photo.replace('public', '')}`}
+                    alt="existing place"
+                  />
+                  <button type="button" onClick={() => handleRemovePhoto(index, true)}>
                     <BiTrash />
                   </button>
                 </div>
               ))}
               {photos.map((photo, index) => (
                 <div key={index} className="photo">
-                  <img src={URL.createObjectURL(photo)} alt="new place" />
-                  <button
-                    type="button"
-                    onClick={() => handleRemovePhoto(index)}
-                  >
+                  <img 
+                    src={URL.createObjectURL(photo)}
+                    alt="new place"
+                  />
+                  <button type="button" onClick={() => handleRemovePhoto(index)}>
                     <BiTrash />
                   </button>
                 </div>
@@ -476,21 +485,10 @@ const EditListing = () => {
             </div>
 
             <h3>Upload new photos or keep existing ones.</h3>
-            <DragDropContext
-              onDragEnd={handleDragPhoto}
-              isCombineEnabled={false}
-            >
-              <Droppable
-                droppableId="photos"
-                direction="horizontal"
-                isDropDisabled={false}
-              >
+            <DragDropContext onDragEnd={handleDragPhoto} isCombineEnabled={false}>
+              <Droppable droppableId="photos" direction="horizontal" isDropDisabled={false}>
                 {(provided) => (
-                  <div
-                    className="photos"
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                  >
+                  <div className="photos" {...provided.droppableProps} ref={provided.innerRef}>
                     <input
                       id="image"
                       type="file"

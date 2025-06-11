@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import "../styles/AdminDashboard.scss";
 
@@ -255,7 +255,7 @@ const AdminDashboard = () => {
                 <thead>
                   <tr>
                     <th>Title</th>
-                    <th>Creator</th>
+                    <th>Category</th>
                     <th>Price</th>
                     <th>Actions</th>
                   </tr>
@@ -266,24 +266,18 @@ const AdminDashboard = () => {
                     listings.map((listing) => (
                       <tr key={listing._id}>
                         <td>{listing.title}</td>
-                        <td>
-                          {listing.creator.firstName} {listing.creator.lastName}
-                        </td>
+                        <td>{listing.category}</td>
                         <td>${listing.price}</td>
                         <td>
-                          <button
+                          <Link 
+                            to={`/edit-listing/${listing._id}`}
                             className="edit-btn"
-                            onClick={() =>
-                              navigate(`/admin/properties/edit/${listing._id}`)
-                            }
                           >
                             Edit
-                          </button>
+                          </Link>
                           <button
                             className="delete-btn"
-                            onClick={() =>
-                              handleDelete(listing._id, "listings")
-                            }
+                            onClick={() => handleDelete(listing._id, "listings")}
                           >
                             Delete
                           </button>
